@@ -53,19 +53,30 @@
 - [x] Footer on every page
 - [x] TypeScript strict mode — zero errors
 - [x] Production build passes
+- [x] `.env` filled with real anon key → app starts
+- [x] Migrations applied to Supabase
+- [x] Demo users created and linked to stores
 - [x] Playwright e2e tests — 7 scenarios (`tests/e2e/findmedicine.spec.ts`)
 - [x] `playwright.config.ts` with auto-webserver start
-- [ ] `.env` filled with real anon key → app starts
-- [ ] Migrations applied to Supabase (SQL in `supabase/migrations/00001_schema.sql`)
-- [ ] Seed applied (`supabase/seed.sql`) — demo users may need Dashboard creation
-- [ ] Final commit + push
 
-## Notes
-- Tailwind v4 installed (uses `@theme` CSS variables, no `tailwind.config.js`)
-- Database types in `src/types/database.ts` (manual until Supabase CLI generates them)
-- FulfilmentPage uses radio `<input>` elements inside `<label>` wrappers for accessibility + Playwright compatibility
-- StoreSelectionPage: each store row has an explicit "Select" button (Playwright-friendly)
-- CartPage checkout button label: "Checkout"
-- Store UUIDs in seed: `c0000000-0000-0000-0000-00000000000{1-4}`
-- Medicine UUIDs: `00000000-0000-0000-0000-{001-012,00a-012}`
-- Demo accounts password: `Test1234!`
+## Verification Results (20/20 PASS)
+1. ✅ Customer login
+2. ✅ Medicines loaded (18 items)
+3. ✅ Nearby stores (haversine, 4 stores within 10km)
+4. ✅ Place pickup order (atomic, stock deducted, handover code generated)
+5. ✅ Customer sees own order (RLS)
+6. ✅ Store owner login
+7. ✅ Store owner sees store orders (RLS)
+8. ✅ Accept order (pending → accepted)
+9. ✅ Mark ready (accepted → ready)
+10. ✅ Complete order (ready → completed)
+11. ✅ Stock deducted (200 → 198 after qty 2)
+12. ✅ Notification created for store owner
+13. ✅ Invalid status transition blocked (completed → accepted)
+14. ✅ Delivery+Rx without prescription rejected by DB
+15. ✅ Delivery+Rx with prescription succeeds
+16. ✅ Stock restored on reject (29 → 30)
+17. ✅ Order status = rejected after rejection
+18. ✅ Reject reason stored ("Invalid prescription")
+19. ✅ Pincode store lookup (3 delivery stores for 425405)
+20. ✅ Role immutability enforced (customer → store_owner blocked)
