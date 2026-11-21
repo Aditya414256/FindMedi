@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Store, Truck, ArrowLeft } from 'lucide-react';
 import { useCart } from '../cart/useCart';
 import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 import { useState } from 'react';
 import { Input } from '../../components/ui/Input';
 
