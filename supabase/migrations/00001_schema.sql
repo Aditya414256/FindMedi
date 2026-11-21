@@ -516,8 +516,18 @@ CREATE TRIGGER on_auth_user_created
 
 
 -- ---------------------------------------------------------------------------
--- 6. ROW LEVEL SECURITY
+-- 6. PERMISSIONS & ROW LEVEL SECURITY
 -- ---------------------------------------------------------------------------
+
+-- Grant schema and table access to API roles (RLS policies govern row access)
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
 
 ALTER TABLE public.profiles        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stores          ENABLE ROW LEVEL SECURITY;
