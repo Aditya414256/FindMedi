@@ -32,3 +32,6 @@ playwright-report/
 
 # Supabase
 .supabase/
+.temp/
+supabase/.temp/
+
