@@ -20,7 +20,7 @@ import { StoreSetupPage } from './features/store-dashboard/StoreSetupPage';
 import { AppLayout } from './components/layout/AppLayout';
 import { CartProvider } from './features/cart/CartProvider';
 import { useAuth } from './features/auth/useAuth';
-import type { UserRole } from './types/database';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,9 +30,7 @@ const queryClient = new QueryClient({
 
 function AppRoutes() {
   const { profile } = useAuth();
-  const role = profile?.role as UserRole | undefined;
-  const isCustomer = role === 'customer';
-  const isStoreOwner = role === 'store_owner';
+  const isStoreOwner = profile?.role === 'store_owner';
   const defaultPath = isStoreOwner ? '/dashboard' : '/catalog';
 
   return (
@@ -43,28 +41,20 @@ function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           {/* Customer routes */}
-          {isCustomer && (
-            <>
-              <Route path="/catalog" element={<CatalogPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/order/fulfilment" element={<FulfilmentPage />} />
-              <Route path="/order/stores" element={<StoreSelectionPage />} />
-              <Route path="/order/prescription" element={<PrescriptionPage />} />
-              <Route path="/order/review" element={<ReviewOrderPage />} />
-              <Route path="/orders" element={<OrdersListPage />} />
-              <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
-            </>
-          )}
+          <Route path="/catalog" element={<CatalogPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/order/fulfilment" element={<FulfilmentPage />} />
+          <Route path="/order/stores" element={<StoreSelectionPage />} />
+          <Route path="/order/prescription" element={<PrescriptionPage />} />
+          <Route path="/order/review" element={<ReviewOrderPage />} />
+          <Route path="/orders" element={<OrdersListPage />} />
+          <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
 
           {/* Store owner routes */}
-          {isStoreOwner && (
-            <>
-              <Route path="/dashboard" element={<StoreDashboard />} />
-              <Route path="/dashboard/orders/:orderId" element={<StoreOrderDetail />} />
-              <Route path="/dashboard/inventory" element={<InventoryPage />} />
-              <Route path="/dashboard/setup" element={<StoreSetupPage />} />
-            </>
-          )}
+          <Route path="/dashboard" element={<StoreDashboard />} />
+          <Route path="/dashboard/orders/:orderId" element={<StoreOrderDetail />} />
+          <Route path="/dashboard/inventory" element={<InventoryPage />} />
+          <Route path="/dashboard/setup" element={<StoreSetupPage />} />
 
           {/* Catch-all */}
           <Route path="/" element={<Navigate to={defaultPath} replace />} />

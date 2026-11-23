@@ -17,7 +17,7 @@ export function StoreDashboard() {
   const queryClient = useQueryClient();
   const { alertsEnabled, enableAlerts, markAllAsRead, unreadCount } = useNotifications();
 
-  const { data: store } = useQuery({
+  const { data: store, isLoading: storeLoading } = useQuery({
     queryKey: ['my-store'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,6 +60,14 @@ export function StoreDashboard() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [store, queryClient]);
+
+  if (storeLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+      </div>
+    );
+  }
 
   if (!store) {
     return (
