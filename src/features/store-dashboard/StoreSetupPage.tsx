@@ -22,7 +22,7 @@ export function StoreSetupPage() {
         .from('stores')
         .select('*')
         .eq('owner_id', user!.id)
-        .single();
+        .maybeSingle();
       return data as Store | null;
     },
     enabled: !!user,

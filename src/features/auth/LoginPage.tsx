@@ -26,7 +26,6 @@ export function LoginPage() {
       toast.success('Welcome back!');
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
-    } finally {
       setLoading(false);
     }
   };

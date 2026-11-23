@@ -29,9 +29,9 @@ export function InventoryPage() {
         .from('stores')
         .select('*')
         .eq('owner_id', user!.id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return data as Store;
+      return data as Store | null;
     },
     enabled: !!user,
   });

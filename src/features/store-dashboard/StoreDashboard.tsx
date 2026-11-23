@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, BellOff, CheckCheck, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../auth/useAuth';
-import { useNotifications } from './useNotifications';
+import { useNotifications } from './NotificationContext';
 import { Card } from '../../components/ui/Card';
 import { OrderStatusBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -24,9 +24,9 @@ export function StoreDashboard() {
         .from('stores')
         .select('*')
         .eq('owner_id', user!.id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return data as Store;
+      return data as Store | null;
     },
     enabled: !!user,
   });
@@ -42,13 +42,14 @@ export function StoreDashboard() {
       if (error) throw error;
       return data as Order[];
     },
-    enabled: !!store,
+    enabled: !!store?.id,
   });
 
   useEffect(() => {
-    if (!store) return;
+    if (!store?.id) return;
+    const channelName = `store-orders-${store.id}-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel('store-orders-realtime')
+      .channel(channelName)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -59,7 +60,7 @@ export function StoreDashboard() {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [store, queryClient]);
+  }, [store?.id, queryClient]);
 
   if (storeLoading) {
     return (

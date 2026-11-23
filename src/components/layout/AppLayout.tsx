@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Menu, X, ShoppingCart, Bell, Package, LayoutDashboard, ClipboardList, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../features/auth/useAuth';
 import { useCart } from '../../features/cart/useCart';
-import { useNotifications } from '../../features/store-dashboard/useNotifications';
+import { useNotifications } from '../../features/store-dashboard/NotificationContext';
 import { BRAND } from '../../config/brand';
 import { cn } from '../../lib/utils';
 import { Footer } from './Footer';

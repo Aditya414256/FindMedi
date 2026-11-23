@@ -45,8 +45,9 @@ export function OrderTrackingPage() {
 
   useEffect(() => {
     if (!orderId) return;
+    const channelName = `order-${orderId}-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel(`order-${orderId}`)
+      .channel(channelName)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
