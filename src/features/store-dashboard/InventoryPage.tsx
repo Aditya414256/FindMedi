@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Package } from 'lucide-react';
 import { toast } from 'sonner';
@@ -59,7 +59,27 @@ export function InventoryPage() {
       return data as unknown as InventoryRow[];
     },
     enabled: !!store,
+    refetchOnWindowFocus: 'always',
+    refetchOnMount: 'always',
   });
+
+  useEffect(() => {
+    if (!store?.id) return;
+    const channelName = `store-inventory-orders-${store.id}-${Math.random().toString(36).slice(2)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: `store_id=eq.${store.id}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['store-inventory', store.id], refetchType: 'all' });
+        queryClient.invalidateQueries({ queryKey: ['store-orders', store.id], refetchType: 'all' });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [store?.id, queryClient]);
 
   const updateInventory = async (medicineId: string, field: 'price' | 'stock', value: number) => {
     if (!store) return;
@@ -166,6 +186,11 @@ function InventoryRowEdit({ row, onUpdate }: {
 }) {
   const [price, setPrice] = useState(String(row.price));
   const [stock, setStock] = useState(String(row.stock));
+
+  useEffect(() => {
+    setPrice(String(row.price));
+    setStock(String(row.stock));
+  }, [row.price, row.stock]);
 
   return (
     <tr>

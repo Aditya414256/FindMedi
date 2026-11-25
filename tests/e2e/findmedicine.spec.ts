@@ -439,3 +439,64 @@ test('7: DB trigger blocks invalid status transition (rejected → completed)', 
 
   await ownerCtx.close();
 });
+
+// ---------------------------------------------------------------------------
+// 8. Quantity-aware availability — stock 1 shows as missing when customer wants 2
+// ---------------------------------------------------------------------------
+test('8: Store with stock 1 shows as missing the item when customer wants 2', async ({ browser }) => {
+  const ownerCtx = await browser.newContext();
+  const ownerPage = await ownerCtx.newPage();
+  await loginAs(ownerPage, STORE1_EMAIL, STORE1_PASS);
+  await ownerPage.goto(`${BASE}/dashboard/inventory`);
+  await ownerPage.waitForSelector('text=Inventory — Shirpur Medical Store', { timeout: 15_000 });
+
+  const betadineRow = ownerPage.locator('tr', { hasText: 'Betadine' });
+  await expect(betadineRow).toBeVisible({ timeout: 10_000 });
+  const stockInput = betadineRow.locator('input[type="number"]').nth(1);
+  const originalStock = await stockInput.inputValue();
+
+  try {
+    await stockInput.fill('1');
+    await stockInput.blur();
+    await ownerPage.waitForTimeout(800);
+
+    const customerCtx = await browser.newContext();
+    await customerCtx.grantPermissions(['geolocation']);
+    await customerCtx.setGeolocation({ latitude: 21.348, longitude: 74.88 });
+    const customerPage = await customerCtx.newPage();
+
+    await loginAs(customerPage, CUSTOMER_EMAIL, CUSTOMER_PASS);
+    await customerPage.goto(`${BASE}/catalog`);
+    const searchInput = customerPage.getByPlaceholder(/search/i);
+    await searchInput.fill('Betadine');
+    await customerPage.waitForTimeout(400);
+
+    const addBtn = customerPage.getByRole('button', { name: /add to cart|add more/i }).first();
+    await addBtn.click(); // qty 1
+    await addBtn.click(); // qty 2
+
+    await customerPage.getByRole('link', { name: /cart/i }).click();
+    await expect(customerPage.getByText(/betadine/i)).toBeVisible();
+    await customerPage.getByRole('button', { name: /checkout|proceed/i }).click();
+
+    await customerPage.getByRole('radio', { name: /pick.?up/i }).check();
+    await customerPage.getByRole('button', { name: /continue|next/i }).click();
+
+    await customerPage.waitForSelector('text=Shirpur Medical Store', { timeout: 15_000 });
+
+    const shirpurCard = customerPage.locator('div', { hasText: 'Shirpur Medical Store' })
+      .filter({ has: customerPage.getByRole('heading', { name: 'Shirpur Medical Store' }) })
+      .first();
+
+    await expect(shirpurCard.getByText(/missing:.*betadine/i)).toBeVisible({ timeout: 10_000 });
+    await expect(shirpurCard.getByText(/only 1 left/i)).toBeVisible();
+    await expect(shirpurCard.getByRole('button', { name: /^select$/i })).toHaveCount(0);
+
+    await customerCtx.close();
+  } finally {
+    await stockInput.fill(originalStock);
+    await stockInput.blur();
+    await ownerPage.waitForTimeout(800);
+    await ownerCtx.close();
+  }
+});

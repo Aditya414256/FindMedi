@@ -24,6 +24,7 @@ export function CatalogPage() {
       if (error) throw error;
       return data as Medicine[];
     },
+    refetchOnMount: 'always',
   });
 
   const filtered = (medicines ?? []).filter(m =>

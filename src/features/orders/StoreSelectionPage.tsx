@@ -11,7 +11,7 @@ import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { formatPrice, formatDistance } from '../../lib/utils';
 import { DEFAULT_RADIUS_KM } from '../../config/constants';
-import type { NearbyStore } from '../../types/database';
+import type { Json, NearbyStore } from '../../types/database';
 
 export function StoreSelectionPage() {
   const navigate = useNavigate();
@@ -56,30 +56,33 @@ export function StoreSelectionPage() {
     );
   }, [isPickup]);
 
-  const medicineIds = items.map(i => i.medicine.id);
+  const cartItems = items.map(i => ({ medicine_id: i.medicine.id, quantity: i.quantity }));
+  const cartKey = items.map(i => `${i.medicine.id}:${i.quantity}`).join(',');
 
   const { data: stores, isLoading } = useQuery({
-    queryKey: ['stores', fulfilment.type, userLat, userLng, fulfilment.pincode, medicineIds.join(',')],
+    queryKey: ['stores', fulfilment.type, userLat, userLng, fulfilment.pincode, cartKey],
     queryFn: async (): Promise<NearbyStore[]> => {
       if (isPickup) {
         const { data, error } = await supabase.rpc('nearby_stores', {
           user_lat: userLat!,
           user_lng: userLng!,
           radius_km: DEFAULT_RADIUS_KM,
-          medicine_ids: medicineIds,
+          p_items: cartItems as unknown as Json,
         });
         if (error) throw error;
         return (data ?? []) as NearbyStore[];
       } else {
         const { data, error } = await supabase.rpc('stores_for_pincode', {
           p_pincode: fulfilment.pincode!,
-          medicine_ids: medicineIds,
+          p_items: cartItems as unknown as Json,
         });
         if (error) throw error;
         return (data ?? []) as NearbyStore[];
       }
     },
     enabled: isPickup ? (userLat !== null && userLng !== null) : !!fulfilment.pincode,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
   });
 
   const selectStore = (storeId: string, store: NearbyStore) => {
@@ -186,7 +189,17 @@ export function StoreSelectionPage() {
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" strokeWidth={1.5} />
                       <div>
                         <p className="text-xs font-medium text-orange-800">
-                          Missing: {store.missing_medicines.filter(Boolean).join(', ')}
+                          Missing:{' '}
+                          {store.missing_medicines.filter(Boolean).map((name, idx) => {
+                            const low = (store.low_stock_items ?? []).find(l => l.medicine_name === name);
+                            return (
+                              <span key={name}>
+                                {idx > 0 ? ', ' : ''}
+                                {name}
+                                {low ? ` (Only ${low.available_stock} left)` : ''}
+                              </span>
+                            );
+                          })}
                         </p>
                         <div className="mt-2">
                           <Button

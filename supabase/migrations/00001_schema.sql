@@ -1,4 +1,4 @@
--- =============================================================================
+﻿-- =============================================================================
 -- FindMedicine — Complete Database Schema Migration
 -- =============================================================================
 -- This migration creates all tables, functions, triggers, RLS policies,
@@ -762,7 +762,7 @@ BEGIN
   PERFORM cron.schedule(
     'expire-pending-orders',
     '* * * * *',
-    $$SELECT public.expire_pending_orders()$$
+    'SELECT public.expire_pending_orders()'
   );
 EXCEPTION WHEN OTHERS THEN
   RAISE NOTICE 'pg_cron job skipped (extension may not be available or job already exists): %', SQLERRM;
@@ -791,3 +791,4 @@ END $$;
 -- ===========================================================================
 -- END OF MIGRATION
 -- ===========================================================================
+

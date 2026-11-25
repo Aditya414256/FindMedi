@@ -204,7 +204,7 @@ export interface Database {
           user_lat: number;
           user_lng: number;
           radius_km?: number;
-          medicine_ids?: string[];
+          p_items?: Json;
         };
         Returns: {
           store_id: string;
@@ -217,12 +217,13 @@ export interface Database {
           distance_km: number;
           total_price: number;
           missing_medicines: string[];
+          low_stock_items: LowStockItem[];
         }[];
       };
       stores_for_pincode: {
         Args: {
           p_pincode: string;
-          medicine_ids?: string[];
+          p_items?: Json;
         };
         Returns: {
           store_id: string;
@@ -235,6 +236,7 @@ export interface Database {
           distance_km: number;
           total_price: number;
           missing_medicines: string[];
+          low_stock_items: LowStockItem[];
         }[];
       };
       place_order: {
@@ -269,6 +271,13 @@ export type AppNotification = Database['public']['Tables']['notifications']['Row
 export type OrderStatus = 'pending' | 'accepted' | 'ready' | 'out_for_delivery' | 'completed' | 'rejected' | 'cancelled' | 'expired' | 'not_collected';
 export type FulfilmentType = 'pickup' | 'delivery';
 export type UserRole = 'customer' | 'store_owner';
+
+export interface LowStockItem {
+  medicine_id: string;
+  medicine_name: string;
+  available_stock: number;
+  requested_quantity: number;
+}
 
 export type NearbyStore = Database['public']['Functions']['nearby_stores']['Returns'][number];
 export type PlaceOrderResult = { order_id: string; handover_code: string; total: number };

@@ -43,6 +43,7 @@ export function StoreDashboard() {
       return data as Order[];
     },
     enabled: !!store?.id,
+    refetchOnWindowFocus: 'always',
   });
 
   useEffect(() => {
@@ -56,7 +57,8 @@ export function StoreDashboard() {
         table: 'orders',
         filter: `store_id=eq.${store.id}`,
       }, () => {
-        queryClient.invalidateQueries({ queryKey: ['store-orders', store.id] });
+        queryClient.invalidateQueries({ queryKey: ['store-orders', store.id], refetchType: 'all' });
+        queryClient.invalidateQueries({ queryKey: ['store-inventory', store.id], refetchType: 'all' });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
